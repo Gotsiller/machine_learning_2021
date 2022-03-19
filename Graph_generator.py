@@ -33,6 +33,23 @@ def remove_missing_values(column: pd.Series, symbol: str) -> pd.Series:
     return column.drop(column.index[column == symbol])
 
 
+def prepare_income_data(income_raw: pd.Series) -> tuple[list, list]:
+    conversion = {'Under_$10': 0,
+                  '$10-19': 1,
+                  '$20-29': 2,
+                  '$30-39': 3,
+                  '$40-49': 4,
+                  '$50-74': 5,
+                  '$75-99': 6,
+                  'Over_$100': 7}
+
+    income = []
+    for value in income_raw:
+        income.append(conversion[value])
+
+    return income, ['Under_$10', '$10-19', '$20-29', '$30-39', '$40-49', '$50-74', '$75-99', 'Over_$100']
+
+
 def plot_table_wine(table, labels, plot_name, file_name):
     for n in table:
         plt.hist(table[n], 100, histtype='step', label=labels[n])
@@ -63,15 +80,15 @@ def plot_column_netuse(column, bins, plot_name, file_name):
     plt.close()
 
 
-#
-# def plot_column_fps_nominal(column, plot_name, file_name):
-#     plt.figure(figsize=(20, 5), constrained_layout=True)
-#     plt.hist(column, 30)
-#     plt.title(plot_name)
-#     plt.xticks(rotation=60)
-#     plt.savefig(file_name)
-#     # plt.show()
-#     plt.close()
+
+def plot_column_netuse_nominal(column, labels: list, plot_name, file_name):
+    # plt.figure(figsize=(10, 5), constrained_layout=True)
+    plt.hist(column, len(labels))
+    plt.title(plot_name)
+    plt.xticks(rotation=20, ticks=[x for x in range(0, 8)], labels=labels)
+    plt.savefig(file_name)
+    # plt.show()
+    plt.close()
 
 
 if __name__ == '__main__':
@@ -89,3 +106,6 @@ if __name__ == '__main__':
 
     age_column = remove_missing_values(netuse['Age'], 'Not_Say').astype(int)
     plot_column_netuse(age_column, 50, 'Age of Users', 'Graphs/Age.png')
+
+    income_column, income_labels = prepare_income_data(remove_missing_values(netuse['Household_Income'], 'Not_Say'))
+    plot_column_netuse_nominal(income_column, income_labels, 'Household Income', 'Graphs/income.png')
